@@ -1,19 +1,22 @@
 const User = require('../models/User');
 const Product = require('../models/Product');
 const bcrypt = require('bcrypt');
-//const { redis } = require('../config/redis');
+
+const useRedis = true;
 
 const PROFILE_TTL = 300; // 5dk
 const profileKey = (userId) => `profile:${userId}`;
+const { redis } = useRedis ? require('../config/redis') : null;
 
 exports.getUserProfile = async (req, res) => {
     try {
-        // redisi yalnızca localde aktif et
-        /*const cached = await redis.get(profileKey(req.userId));
-        if (cached) {
-            const profile = JSON.parse(cached);
-            return res.json({ profile, message: 'redis data' });
-        }*/
+        if (useRedis) {
+            const cached = await redis.get(profileKey(req.userId));
+            if (cached) {
+                const profile = JSON.parse(cached);
+                return res.json({ profile, message: 'redis data' });
+            }
+        }
 
         const user = await User.findById(req.userId).select('fullname role');
         if (!user) {
@@ -22,13 +25,17 @@ exports.getUserProfile = async (req, res) => {
 
         const profile = { fullname: user.fullname, role: user.role };
 
-        /*await redis.setEx(
-            profileKey(req.userId),
-            PROFILE_TTL,
-            JSON.stringify(profile)
-        );*/
+        if (useRedis) {
+            await redis?.setEx(
+                profileKey(req.userId),
+                PROFILE_TTL,
+                JSON.stringify(profile)
+            );
 
-        res.json({ profile, message: 'mongodb data' });
+            res.json({ profile, message: 'mongodb data' });
+        } else {
+            res.json(profile);
+        }
     } catch (err) {
         res.status(500).json({ error: 'Sunucu hatası' });
     }
