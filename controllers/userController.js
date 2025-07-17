@@ -2,11 +2,11 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const bcrypt = require('bcrypt');
 
-const useRedis = true;
+const useRedis = falase;
 
 const PROFILE_TTL = 300; // 5dk
 const profileKey = (userId) => `profile:${userId}`;
-const { redis } = useRedis ? require('../config/redis') : null;
+const redis = useRedis ? require('../config/redis').redis : null;
 
 exports.getUserProfile = async (req, res) => {
     try {
