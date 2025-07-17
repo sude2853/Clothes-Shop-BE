@@ -2,7 +2,7 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const bcrypt = require('bcrypt');
 
-const useRedis = falase;
+const useRedis = false;
 
 const PROFILE_TTL = 300; // 5dk
 const profileKey = (userId) => `profile:${userId}`;
